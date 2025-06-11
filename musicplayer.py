@@ -7,8 +7,8 @@ import random
 st.set_page_config(page_title="🎶简易音乐播放器🎶", layout="wide")
 st.title("🎼简易音乐播放器🎼")
 
-# 定义一个模拟音乐曲库
-music = [
+# 模拟音乐库
+music_library = [
     {
         "歌名": "「极地暗流」- Narwhal",
         "歌手": "Vanguard Sound / Haloweak",
@@ -37,34 +37,32 @@ music = [
         "封面链接": "http://p1.music.126.net/cnYoY9qtf8qYZkyZUPS7QA==/109951166960334103.jpg",
         "歌曲链接": "https://music.163.com/song/media/outer/url?id=1913688116.mp3"
     }
-    
 ]
 
 # 初始化会话状态
-if 'song_index' not in st.session_state:
-    st.session_state.song_index = 0
-if 'playing' not in st.session_state:
+if 'current_song_index' not in st.session_state:
+    st.session_state.current_song_index = 0
+if 'is_playing' not in st.session_state:
     st.session_state.is_playing = False
 if 'progress' not in st.session_state:
     st.session_state.progress = 0
 
-#定义函数，获取当前歌曲信息
+# 获取当前歌曲信息
+def get_current_song():
+    return music_library[st.session_state.current_song_index]
 
-    
-def get_song():
-    return music[st.session_state.song_index]
-#暂停与播放
+# 播放控制函数
 def play_pause():
-    st.session_state.is_playing = not st.session_state.playing
-#下一首
+    st.session_state.is_playing = not st.session_state.is_playing
+
 def next_song():
-    st.session_state.song_index = (st.session_state.current_song_index + 1) % len(music_library)
-    st.session_state.playing = True
+    st.session_state.current_song_index = (st.session_state.current_song_index + 1) % len(music_library)
+    st.session_state.is_playing = True
     st.session_state.progress = 0
-#上一首
-def pre_song():
-    st.session_state.song_index = (st.session_state.current_song_index - 1) % len(music_library)
-    st.session_state.playing = True
+
+def prev_song():
+    st.session_state.current_song_index = (st.session_state.current_song_index - 1) % len(music_library)
+    st.session_state.is_playing = True
     st.session_state.progress = 0
 
 
@@ -73,23 +71,23 @@ def pre_song():
 st.markdown("---")
 
 # 当前歌曲信息
-song = get_song()
+current_song = get_current_song()
 col1, col2 = st.columns([1, 3])
 
 with col1:
-    # 专辑封面，并调整封面大小参数
-    st.image(song["封面链接"], width=150, caption="专辑封面")
+    # 专辑封面
+    st.image(current_song["封面链接"], width=150, caption="专辑封面")
 
 with col2:
-    st.subheader(song["歌名"])
-    st.markdown(f"**歌手**: {song['歌手']}")
-    st.markdown(f"**时长**: {song['播放时长']}")
+    st.subheader(current_song["歌名"])
+    st.markdown(f"**歌手**: {current_song['歌手']}")
+    st.markdown(f"**时长**: {current_song['播放时长']}")
 
 # 播放控制按钮
 col1, col2, col3 = st.columns([1, 1, 1])
 
 with col1:
-    st.button("上一首", on_click=pre_song)
+    st.button("上一首", on_click=prev_song)
 
 with col2:
     if st.session_state.is_playing:
@@ -112,15 +110,15 @@ if st.session_state.is_playing:
     if st.session_state.progress >= 100:
         next_song()
 
-# 音频播放
-st.audio(song["歌曲链接"], format="audio/mp3")
+# 音频播放器
+st.audio(current_song["歌曲链接"], format="audio/mp3")
 
 
-# 生成一个歌曲列表
+# 歌曲列表
 st.markdown("## 歌曲列表")
-for i, song in enumerate(music):
+for i, song in enumerate(music_library):
     if st.button(f"{song['歌名']} - {song['歌手']} ({song['播放时长']})", key=f"song_{i}"):
-        st.session_state.song_index = i
-        st.session_state.playing = True
+        st.session_state.current_song_index = i
+        st.session_state.is_playing = True
         st.session_state.progress = 0
         st.experimental_rerun()
